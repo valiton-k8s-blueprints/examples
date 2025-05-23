@@ -1,0 +1,28 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: mariadb
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/background
+spec:
+  project: default
+  source:
+    chart: mariadb
+    repoURL: registry-1.docker.io/bitnamicharts
+    targetRevision: 20.5.5
+    helm:
+      valuesObject:
+        auth:
+          username: wordpress
+          database: wordpress
+          usePasswordFiles: false
+          existingSecret: mariadb
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: wordpress
+
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true
