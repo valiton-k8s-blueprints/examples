@@ -1,0 +1,58 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: wordpress
+  namespace: argocd
+  finalizers:
+    - resources-finalizer.argocd.argoproj.io/background
+spec:
+  project: default
+  source:
+    chart: wordpress
+    repoURL: registry-1.docker.io/bitnamicharts
+    targetRevision: 24.2.6
+    helm:
+      valuesObject:
+        wordpressPlugins: ~
+        allowEmptyPassword: false
+        allowOverrideNone: true
+        wordpressScheme: https
+        service:
+          type: ClusterIP
+        ingress:
+          enabled: true
+          hostname: wordpress.example.com
+          tls: true
+          selfSigned: false
+          annotations:
+            cert-manager.io/issuer: "letsencrypt-http01"
+        persistence:
+          enabled: true
+          size: "2Gi"
+          accessModes:
+            - ReadWriteOnce
+        volumePermissions:
+          enabled: false
+        resources:
+          requests:
+            cpu: "500m"
+            memory: "512Mi"
+          limits:
+            cpu: "2000m"
+            memory: "2Gi"
+        mariadb:
+          enabled: false
+        externalDatabase:
+          host: mariadb
+          user: wordpress
+          database: wordpress
+          existingSecret: mariadb
+
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: wordpress
+
+  syncPolicy:
+    automated: {}
+    syncOptions:
+      - CreateNamespace=true
