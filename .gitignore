@@ -1,0 +1,12 @@
+local/
+*.tgz
+Chart.lock
+.DS_Store
+terragrunt*
+terraform.tfvars
+secrets.yaml
+talosconfig
+terraform.tfstate
+.terraform
+.terraform.lock.hcl
+.terraform.tfstate.lock.info
