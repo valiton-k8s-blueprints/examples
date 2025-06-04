@@ -17,6 +17,7 @@ spec:
         allowEmptyPassword: false
         allowOverrideNone: true
         wordpressScheme: https
+        existingSecret: wordpress
         service:
           type: ClusterIP
         ingress:
