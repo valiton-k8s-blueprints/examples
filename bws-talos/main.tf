@@ -92,7 +92,8 @@ module "bws-talos-bootstrap" {
   }
 
   cinder_csi_plugin = {
-    namespace = module.bws-talos-bootstrap-config.cinder_csi_plugin_namespace
+    namespace   = module.bws-talos-bootstrap-config.cinder_csi_plugin_namespace
+    volume_type = var.cinder_csi_plugin.volume_type
   }
 
   external_dns = {
