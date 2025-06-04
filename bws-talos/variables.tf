@@ -153,7 +153,9 @@ variable "kube_prometheus_stack" {
 variable "cinder_csi_plugin" {
   description = "Cinder csi plugin add-on configuration values"
   type        = any
-  default     = {}
+  default = {
+    volume_type = "ssd-20000-350"
+  }
 }
 
 variable "addons" {
