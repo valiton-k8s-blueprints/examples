@@ -28,12 +28,6 @@ data "openstack_identity_auth_scope_v3" "user" {
   set_token_id = true
 }
 
-module "bws-talos-bootstrap-config" {
-  source = "git::https://github.com/valiton-k8s-blueprints/terraform.git//bws-talos/bootstrap-config?ref=main"
-
-  addons = var.addons
-}
-
 module "bws-talos-base" {
   source = "git::https://github.com/valiton-k8s-blueprints/terraform.git//bws-talos/base?ref=main"
 
@@ -63,7 +57,7 @@ module "bws-talos-base" {
 
   image_name = var.image_name
 
-  pod_security_exemptions_namespaces = module.bws-talos-bootstrap-config.pod_security_exemptions_namespaces
+  pod_security_exemptions_namespaces = ["kube-prometheus-stack", "cinder-csi-plugin"]
 }
 
 module "bws-talos-bootstrap" {
@@ -71,50 +65,29 @@ module "bws-talos-bootstrap" {
 
   depends_on = [module.bws-talos-base.talos_cluster_health]
 
-  base_name          = var.base_name
-  environment        = var.environment
-  kubernetes_version = var.kubernetes_version
-  addons             = module.bws-talos-bootstrap-config.addons
+  base_name   = var.base_name
+  environment = var.environment
 
   gitops_applications_repo_revision = var.gitops_applications_repo_revision
   gitops_applications_repo_url      = var.gitops_applications_repo_url
+  gitops_applications_repo_path     = var.gitops_applications_repo_path
 
-  os_auth_url                      = var.os_auth_url
   os_application_credential_id     = var.os_application_credential_id
   os_application_credential_secret = var.os_application_credential_secret
-  os_private_network_subnet_id     = module.bws-talos-base.os_private_network_subnet_id
-  os_public_network_id             = module.bws-talos-base.os_public_network_id
 
   destroy_timeout = 120
 
-  kube_prometheus_stack = {
-    namespace = module.bws-talos-bootstrap-config.kube_prometheus_stack_namespace
-  }
+  metadata_annotations = {
+    openstack_ccm_version = var.openstack_ccm_version
 
-  cinder_csi_plugin = {
-    namespace   = module.bws-talos-bootstrap-config.cinder_csi_plugin_namespace
-    volume_type = var.cinder_csi_plugin.volume_type
-  }
+    openstack_auth_url            = var.os_auth_url
+    openstack_subnet_id           = module.bws-talos-base.os_private_network_subnet_id
+    openstack_floating_network_id = module.bws-talos-base.os_public_network_id
 
-  external_dns = {
-    domain_filters = var.external_dns_domain_filters
-    policy         = "sync"
-  }
-
-  cert_manager = {
-    acme = {
-      registration_email = var.cert_manager_acme_registration_mail
-    }
-  }
-
-  ingress_nginx = {
-    ingressclass = {
-      name    = "ingress-nginx"
-      default = "true"
-    }
-  }
-
-  argocd = {
-    hostname = var.argocd_hostname
+    cinder_csi_plugin_volume_type       = var.cinder_csi_plugin_volume_type
+    external_dns_domain_filters         = var.external_dns_domain_filters
+    external_dns_txt_owner_id           = var.base_name
+    cert_manager_acme_registration_mail = var.cert_manager_acme_registration_mail
+    argocd_hostname                     = var.argocd_hostname
   }
 }
