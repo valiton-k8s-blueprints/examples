@@ -15,6 +15,12 @@ variable "environment" {
   default     = "development"
 }
 
+variable "talos_secrets_file" {
+  description = "Name of the file that contains the Talos secrets generated with `talosctl gen secrets`"
+  type        = string
+  default     = "secrets.yaml"
+}
+
 variable "os_application_credential_id" {
   description = "Openstack application credentials ID"
   type        = string
@@ -66,40 +72,10 @@ variable "openstack_ccm_version" {
   default     = "v1.32.0"
 }
 
-variable "worker_count" {
-  description = "Number of worker nodes"
-  type        = number
-  default     = 2
-}
-
-variable "controlplane_count" {
-  description = "Number of controlplane nodes"
-  type        = number
-  default     = 3
-}
-
-
-variable "talos_secrets_file" {
-  description = "Name of the file that contains the Talos secrets generated with `talosctl gen secrets`"
+variable "image_name" {
+  description = "Name of the Talos image in your BWS project"
   type        = string
-  default     = "secrets.yaml"
-}
-
-variable "external_dns_domain_filters" {
-  description = "Domains for external dns"
-  type        = string
-  default     = "['example.com']"
-}
-
-variable "argocd_hostname" {
-  description = "Domainname for ArgoCD"
-  type        = string
-  default     = "argocd.example.com"
-}
-
-variable "cert_manager_acme_registration_mail" {
-  description = "E-Mail address to register with let's encrypt"
-  type        = string
+  default     = "Talos"
 }
 
 variable "worker_instance_flavor" {
@@ -120,6 +96,12 @@ variable "worker_volume_size" {
   default     = 40
 }
 
+variable "worker_count" {
+  description = "Number of worker nodes"
+  type        = number
+  default     = 2
+}
+
 variable "controlplane_instance_flavor" {
   description = "Instance flavor for controlplane nodes"
   type        = string
@@ -138,39 +120,10 @@ variable "controlplane_volume_size" {
   default     = 40
 }
 
-variable "image_name" {
-  description = "Name of the Talos image in your BWS project"
-  type        = string
-  default     = "Talos"
-}
-
-variable "kube_prometheus_stack" {
-  description = "Kube prometheus stack add-on configuration values"
-  type        = any
-  default     = {}
-}
-
-variable "cinder_csi_plugin" {
-  description = "Cinder csi plugin add-on configuration values"
-  type        = any
-  default = {
-    volume_type = "ssd-20000-350"
-  }
-}
-
-variable "addons" {
-  description = "Kubernetes addons"
-  type        = any
-  default = {
-    enable_metrics_server                 = true
-    enable_external_secrets               = true
-    enable_external_dns                   = true
-    enable_kube_prometheus_stack          = true
-    enable_cinder_csi_plugin              = true
-    enable_ingress_nginx                  = true
-    enable_cert_manager                   = true
-    enable_cert_manager_designate_webhook = true
-  }
+variable "controlplane_count" {
+  description = "Number of controlplane nodes"
+  type        = number
+  default     = 3
 }
 
 variable "gitops_applications_repo_url" {
@@ -179,8 +132,36 @@ variable "gitops_applications_repo_url" {
   default     = "https://github.com/valiton-k8s-blueprints/argocd.git"
 }
 
+variable "gitops_applications_repo_path" {
+  description = "Path in Git repository for applications"
+  type        = string
+  default     = "bws-talos"
+}
+
+
 variable "gitops_applications_repo_revision" {
   description = "Git repository revision/branch/ref for applications"
   type        = string
   default     = "main"
+}
+
+variable "external_dns_domain_filters" {
+  description = "Domains for external dns, e.g. ['example.com']"
+  type        = string
+}
+
+variable "argocd_hostname" {
+  description = "FQDN for ArgoCD"
+  type        = string
+}
+
+variable "cert_manager_acme_registration_mail" {
+  description = "E-Mail address to register with let's encrypt"
+  type        = string
+}
+
+variable "cinder_csi_plugin_volume_type" {
+  description = "Cinder csi plugin add-on configuration values"
+  type        = string
+  default     = "ssd-20000-350"
 }
