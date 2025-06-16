@@ -138,7 +138,6 @@ variable "gitops_applications_repo_path" {
   default     = "bws-talos"
 }
 
-
 variable "gitops_applications_repo_revision" {
   description = "Git repository revision/branch/ref for applications"
   type        = string
@@ -147,11 +146,6 @@ variable "gitops_applications_repo_revision" {
 
 variable "external_dns_domain_filters" {
   description = "Domains for external dns, e.g. ['example.com']"
-  type        = string
-}
-
-variable "argocd_hostname" {
-  description = "FQDN for ArgoCD"
   type        = string
 }
 

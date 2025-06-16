@@ -88,6 +88,5 @@ module "bws-talos-bootstrap" {
     external_dns_domain_filters         = var.external_dns_domain_filters
     external_dns_txt_owner_id           = var.base_name
     cert_manager_acme_registration_mail = var.cert_manager_acme_registration_mail
-    argocd_hostname                     = var.argocd_hostname
   }
 }
