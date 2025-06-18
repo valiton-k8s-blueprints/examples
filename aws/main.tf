@@ -56,7 +56,7 @@ provider "kubernetes" {
 # modules
 ################################################################################
 module "base" {
-  source    = "git::https://github.com/valiton/k8s-terraform-blueprints.git//terraform/cloud-provider/aws/base?ref=main"
+  source    = "git::https://github.com/valiton-k8s-blueprints/terraform.git//aws/base?ref=main"
   region    = local.region
   base_name = local.base_name
 
@@ -68,7 +68,7 @@ output "base" {
 
 
 module "gitops-eks-addons" {
-  source = "git::https://github.com/valiton/k8s-terraform-blueprints.git//terraform/cloud-provider/aws/bootstrapping/gitops-eks-addons?ref=main"
+  source = "git::https://github.com/valiton-k8s-blueprints/terraform.git//aws/bootstrapping/gitops-eks-addons?ref=main"
 
   environment = local.environment
 
@@ -82,6 +82,7 @@ module "gitops-eks-addons" {
   eks_oidc_provider_arn   = module.base.oidc_provider_arn
   eks_managed_node_groups = module.base.eks_managed_node_groups
 }
+
 output "gitops-eks-addons" {
   value = module.gitops-eks-addons
 }
