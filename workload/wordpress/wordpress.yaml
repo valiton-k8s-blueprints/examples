@@ -26,7 +26,7 @@ spec:
           tls: true
           selfSigned: false
           annotations:
-            cert-manager.io/issuer: "letsencrypt-http01"
+            cert-manager.io/cluster-issuer: "letsencrypt-http01"
         persistence:
           enabled: true
           size: "2Gi"
