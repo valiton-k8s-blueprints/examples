@@ -84,9 +84,9 @@ module "bws-talos-bootstrap" {
     openstack_subnet_id           = module.bws-talos-base.os_private_network_subnet_id
     openstack_floating_network_id = module.bws-talos-base.os_public_network_id
 
-    cinder_csi_plugin_volume_type       = var.cinder_csi_plugin_volume_type
-    external_dns_domain_filters         = var.external_dns_domain_filters
-    external_dns_txt_owner_id           = var.base_name
-    cert_manager_acme_registration_mail = var.cert_manager_acme_registration_mail
+    cinder_csi_plugin_volume_type        = var.cinder_csi_plugin_volume_type
+    external_dns_domain_filters          = var.external_dns_domain_filters
+    external_dns_txt_owner_id            = var.base_name
+    cert_manager_acme_registration_email = var.cert_manager_acme_registration_email
   }
 }

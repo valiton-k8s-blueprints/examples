@@ -149,7 +149,7 @@ variable "external_dns_domain_filters" {
   type        = string
 }
 
-variable "cert_manager_acme_registration_mail" {
+variable "cert_manager_acme_registration_email" {
   description = "E-Mail address to register with let's encrypt"
   type        = string
 }
