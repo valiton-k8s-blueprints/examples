@@ -16,7 +16,7 @@ variable "availability_zones" {
 }
 variable "extensions_dns_zones" {
   type    = list(string)
-  default = ["my-project.runs.onstackit.cloud"]
+  default = ["my-project.runs.onstackit.cloud"] # This DNS zone must already exist.
 }
 
 variable "cert_manager_default_cert_domain_list" { 
