@@ -13,6 +13,12 @@ spec:
     targetRevision: 24.2.6
     helm:
       valuesObject:
+        global:
+          security:
+            allowInsecureImages: true
+        image:
+          repository: bitnamilegacy/wordpress
+          tag: 6.8.2-debian-12-r1
         wordpressPlugins: ~
         allowEmptyPassword: false
         allowOverrideNone: true
