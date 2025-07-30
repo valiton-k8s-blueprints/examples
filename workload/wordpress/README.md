@@ -1,5 +1,11 @@
-Demo Wordpress installation
-===========================
+# Demo Wordpress installation
+
+## Disclaimer
+
+This example uses Bitnami legacy container images (see https://github.com/bitnami/containers/issues/83267)
+and is only an example. Do not use this example for production workloads.
+
+## Introduction
 
 This directory contains ArgoCD applications that will install 
 Wordpress into your cluster.
@@ -10,6 +16,8 @@ to create a random database and wordpress admin password.
 
 You will need to change the `ingress.hostname` in `wordpress.yaml` to reflect
 your setup.
+
+## Installation
 
 To install a demo wordpress apply the manifests here with kubectl:
 
