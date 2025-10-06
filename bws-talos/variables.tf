@@ -87,7 +87,7 @@ variable "worker_instance_flavor" {
 variable "worker_volume_type" {
   description = "BWS volume type for worker nodes"
   type        = string
-  default     = "ssd-10000-250"
+  default     = "ssd-3000-125"
 }
 
 variable "worker_volume_size" {
@@ -111,7 +111,7 @@ variable "controlplane_instance_flavor" {
 variable "controlplane_volume_type" {
   description = "BWS volume type for controlplane nodes"
   type        = string
-  default     = "ssd-10000-250"
+  default     = "ssd-3000-125"
 }
 
 variable "controlplane_volume_size" {
@@ -157,5 +157,5 @@ variable "cert_manager_acme_registration_email" {
 variable "cinder_csi_plugin_volume_type" {
   description = "Cinder csi plugin add-on configuration values"
   type        = string
-  default     = "ssd-20000-350"
+  default     = "ssd-3000-125"
 }
