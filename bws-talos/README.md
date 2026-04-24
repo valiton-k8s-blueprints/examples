@@ -1,58 +1,56 @@
 # Example configuration for BWS (Openstack)
 
+This is an example configuration to provision a Talos Linux cluster on BWS (Openstack).
+
 ## Quick start
 
-### Prepare talos
+### Prerequisites
 
-Get `talosctl` (see https://www.talos.dev/v1.11/introduction/quickstart/) and create your cluster secrets:
+1. Get access to a BWS project.
+2. Create a floating IP to access the cluster:
+   
+   Manually create a Floating-IP: https://dashboard.bws.burda.com/network/floatingip
+   
+   Button "Allocate IP"
+   
+   Select "Network"
+   
+   Select "Owned Subnet"
+   
+   Leave "Floating IP Address" empty
+   
+   Button "OK"
+. 
+4. Create application credentials to authenticate to BWS.
 
-```shell
-talosctl gen secrets
-```
+   Remember to select the desired project after Login.
 
+   Go to https://dashboard.bws.burda.com/user/application-credentials
+   or click your account icon (top-right in the web-UI) => "User Center" => "Application Credentials"
 
-### Fork the argocd repo
+   Button "Create Application Credentials"
 
-https://github.com/valiton-k8s-blueprints/argocd
+   Roles needed: "load-balancer_member", "member"
 
-ArgoCD will deploy and update applications based on that repo.
+5. Download the Talos Linux image and upload it to BWS. Name it 'Talos' (this is the default for this configuration).
+5. Get `talosctl` (see https://www.talos.dev/v1.10/introduction/quickstart/).
+6. Create your cluster secrets:
+    ```shell
+    talosctl gen secrets
+    ```
+7. Fork the argocd repo (https://github.com/valiton-k8s-blueprints/argocd).
 
+### Configure the configuration 
 
-### Create Application Credential in BWS
-
-Remember to select the desired project after Login.
-
-Go to https://dashboard.bws.burda.com/user/application-credentials
-or click your account icon (top-right in the web-UI) => "User Center" => "Application Credentials"
-
-Button "Create Application Credentials"
-
-Roles needed:
-"load-balancer_member"
-"member"
-
-
-### Create Floating-IP in BWS
-
-Find your DNS-Zones here: https://dashboard.bws.burda.com/network/dns/zones
-
-Manually create a Floating-IP: https://dashboard.bws.burda.com/network/floatingip
-Button "Allocate IP"
-Select "Network"
-Select "Owned Subnet"
-Leave "Floating IP Address" empty
-Button "OK"
-
-
-### Prepare terraform.tfvars file
-
-Create a `terraform.tfvars` file, and fill in these minimum variables:
+Create a `terraform.tfvars` file with your application credentials:
 
 ```terraform
 base_name                            = "test-cluster"
+environment                          = "development"
+os_project_name                      = "<your project>"
 os_application_credential_id         = "********* REDACTED *********"
 os_application_credential_secret     = "********* REDACTED *********"
-kube_api_external_ip                 = "193.x.x.x"
+kube_api_external_ip                 = "<your floating ip>"
 external_dns_domain_filters          = "['<your-project>.bws.burda.com']"
 cert_manager_acme_registration_email = "<your email>"
 gitops_applications_repo_url         = "<your applications repo>"
