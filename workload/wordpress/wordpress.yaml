@@ -60,7 +60,7 @@ spec:
                   namespace: traefik-system
                   sectionName: http
               hostnames:
-                - wordpress.bds-bws-test.bws.burda.com
+                - wordpress.example.com
               rules:
                 - filters:
                     - type: RequestRedirect
@@ -76,7 +76,7 @@ spec:
                   namespace: traefik-system
                   sectionName: https
               hostnames:
-                - wordpress.bds-bws-test.bws.burda.com
+                - wordpress.example.com
               rules:
                 - matches:
                     - path:
