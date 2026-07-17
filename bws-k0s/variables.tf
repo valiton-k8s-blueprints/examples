@@ -15,12 +15,6 @@ variable "environment" {
   default     = "development"
 }
 
-variable "talos_secrets_file" {
-  description = "Name of the file that contains the Talos secrets generated with `talosctl gen secrets`"
-  type        = string
-  default     = "secrets.yaml"
-}
-
 variable "os_application_credential_id" {
   description = "Openstack application credentials ID"
   type        = string
@@ -72,6 +66,12 @@ variable "kubernetes_version" {
   default     = "v1.36.2"
 }
 
+variable "k0s_version" {
+  description = "k0s version"
+  type        = string
+  default     = "v1.36.2+k0s.0"
+}
+
 variable "openstack_ccm_version" {
   description = "Openstack cloud controller mananger version"
   type        = string
@@ -79,9 +79,9 @@ variable "openstack_ccm_version" {
 }
 
 variable "image_name" {
-  description = "Name of the Talos image in your BWS project"
+  description = "Name of the image in your BWS project"
   type        = string
-  default     = "Talos"
+  default     = "Ubuntu 24.04"
 }
 
 variable "worker_instance_flavor" {
@@ -126,6 +126,24 @@ variable "controlplane_volume_size" {
   default     = 40
 }
 
+variable "bastion_instance_flavor" {
+  description = "Instance flavor for the bastion node"
+  type        = string
+  default     = "BWS-T1-2-4"
+}
+
+variable "bastion_volume_type" {
+  description = "BWS volume type for bastion node"
+  type        = string
+  default     = "ssd-3000-125"
+}
+
+variable "bastion_volume_size" {
+  description = "Size in GB of the disk of bastion node"
+  type        = number
+  default     = 10
+}
+
 variable "controlplane_count" {
   description = "Number of controlplane nodes"
   type        = number
@@ -140,7 +158,7 @@ variable "gitops_applications_repo_url" {
 variable "gitops_applications_repo_path" {
   description = "Path in Git repository for applications"
   type        = string
-  default     = "bws-talos"
+  default     = "bws-k0s"
 }
 
 variable "gitops_applications_repo_revision" {
@@ -168,4 +186,9 @@ variable "cinder_csi_plugin_volume_type" {
   description = "Cinder csi plugin add-on configuration values"
   type        = string
   default     = "ssd-3000-125"
+}
+
+variable "ssh_public_key" {
+  description = "SSH public key"
+  type        = string
 }
