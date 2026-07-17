@@ -7,23 +7,24 @@ This is an example configuration to provision a Talos Linux cluster on BWS (Open
 ### Prerequisites
 
 1. Get access to a BWS project.
-2. Create a floating IP to access the cluster:
-   
-   Manually create a Floating-IP: https://dashboard.bws.burda.com/network/floatingip
-   
-   Button "Allocate IP"
-   
-   Select "Network"
-   
-   Select "Owned Subnet"
-   
-   Leave "Floating IP Address" empty
-   
-   Button "OK"
-. 
-4. Create application credentials to authenticate to BWS.
 
-   Remember to select the desired project after Login.
+   Remember to select the desired project after logging in to the dashboard.
+
+2. Create a floating IP to access the cluster:
+
+   Manually create a Floating-IP: https://dashboard.bws.burda.com/network/floatingip
+
+   Button "Allocate IP"
+
+   Select "Network"
+
+   Select "Owned Subnet"
+
+   Leave "Floating IP Address" empty
+
+   Button "OK"
+
+4. Create application credentials to authenticate to BWS.
 
    Go to https://dashboard.bws.burda.com/user/application-credentials
    or click your account icon (top-right in the web-UI) => "User Center" => "Application Credentials"

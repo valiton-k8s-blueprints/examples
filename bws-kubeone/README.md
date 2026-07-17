@@ -1,14 +1,38 @@
 # Example configuration for BWS (Openstack)
 
-This is an example configuration to provision a Talos Linux cluster on BWS (Openstack).
+This is an example configuration to provision a kubeone cluster on BWS (Openstack).
 
-## Quickstart
+## Quick start
 
 ### Prerequisites
 
 1. Get access to a BWS project.
-2. Create a floating IP to access the cluster.
-3. Create application credentials to authenticate to BWS.
+
+   Remember to select the desired project after logging in to the dashboard.
+
+2. Create a floating IP to access the cluster:
+
+   Manually create a Floating-IP: https://dashboard.bws.burda.com/network/floatingip
+
+   Button "Allocate IP"
+
+   Select "Network"
+
+   Select "Owned Subnet"
+
+   Leave "Floating IP Address" empty
+
+   Button "OK"
+ 
+4. Create application credentials to authenticate to BWS.
+
+   Go to https://dashboard.bws.burda.com/user/application-credentials
+   or click your account icon (top-right in the web-UI) => "User Center" => "Application Credentials"
+
+   Button "Create Application Credentials"
+
+   Roles needed: "load-balancer_member", "member"
+
 4. Get `kubeone` (see https://docs.kubermatic.com/kubeone/v1.13/getting-kubeone/).
 5. Create a CA, certifiactes and keys:
    ```shell
@@ -78,26 +102,60 @@ gitops_applications_repo_url         = "<your applications repo>"
 ssh_public_key                       = "<your ssh public key>"
 ```
 
-Init Opentofu
+
+### Init Opentofu
 
 ```shell
 tofu init
 ```
 
-and plan/apply
+
+### Plan/apply
+
+Be sure to unset all env variables starting with "OS_", because some of them override our terraform configuration,
+especially OS_CLOUD, despite the official documentation stating otherwise ( https://registry.terraform.io/providers/terraform-provider-openstack/openstack/3.0.0/docs ).
 
 ```shell
 tofu apply
 ```
 
 After a couple of minutes, your cluster should be up and running. Follow the instructions of the terraform 
-output to get your kubeconfig. Check the state of the applications with
+output to get your kubeconfig. Check the state of the applications with:
 
 ```shell
 kubectl -n argocd get applications
 ```
 
 When all applications are synced and healthy, you can deploy your workloads or our example workload.
+
+A couple of hints for manual commands are ouput, e.g.:
+
+```plain
+## get kubeconfig
+## kubeone creates a file <cluster-name>-kubeconfig
+
+echo "ArgoCD Username: admin"
+echo "ArgoCD Password: $(kubectl get secrets argocd-initial-admin-secret -n argocd --template="{{index .data.password | base64decode}}")"
+```
+
+
+### Access ArgoCD web-UI
+
+```shell
+kubectl -n argocd port-forward svc/argo-cd-argocd-server 8081:80
+```
+
+http://localhost:8081
+
+
+### Destroy
+
+```shell
+tofu destroy
+```
+
+NOTE: Any provisioned persistent volumes in Kubernetes will not be deleted. You have to delete them manually afterwards. ( https://dashboard.bws.burda.com/storage/volume )
+
 
 # Reference
 
