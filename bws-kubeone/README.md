@@ -99,6 +99,7 @@ kube_api_external_ip                 = "<your floating ip>"
 dns_domain                           = "<your-project>.bws.burda.com"
 cert_manager_acme_registration_email = "<your email>"
 gitops_applications_repo_url         = "<your applications repo>"
+gitops_applications_repo_revision    = "<your repos branch>"
 ssh_public_key                       = "<your ssh public key>"
 ```
 
