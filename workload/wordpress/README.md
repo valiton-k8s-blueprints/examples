@@ -11,7 +11,7 @@ This directory contains ArgoCD applications that will install
 Wordpress into your cluster.
 
 Since we don't want to have secrets in this repo (or in any repo), we use
-external secrets to create a random database and wordpress admin password.
+External Secrets Operator to create a random database and wordpress admin password.
 
 You will need to change the `ingress.hostname` in `wordpress.yaml` to reflect
 your setup.
@@ -21,14 +21,7 @@ your setup.
 To install a demo wordpress apply the manifests here with kubectl:
 
 ```shell
-# create the wordpress namespace and secrets
-kubectl apply -f application-secrets.yaml
-
-# install database
-kubectl apply -f mariadb.yaml
-
-# install worpdress
-kubectl apply -f wordpress.yaml
+kubectl apply -f .
 
 # get wordpress admin password
 kubectl -n wordpress get secret wordpress --template='{{ (index .data "wordpress-password") | base64decode }}'

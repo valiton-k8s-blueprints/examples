@@ -6,7 +6,17 @@ terragrunt*
 terraform.tfvars
 secrets.yaml
 talosconfig
+ca.crt
+ca.key
+client.crt
+client.key
+k0s.yaml
+bws-kubeone/addons/
+bws-kubeone/*-kubeconfig
+bws-kubeone/*.tar.gz
+bws-kubeone/*.yaml
 terraform.tfstate
+terraform.tfstate.backup
 .terraform
 .terraform.lock.hcl
 .terraform.tfstate.lock.info

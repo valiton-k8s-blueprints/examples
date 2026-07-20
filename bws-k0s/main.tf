@@ -1,6 +1,5 @@
 locals {
   kubernetes_endpoint         = "https://${var.kube_api_external_ip}:${var.kube_api_external_port}"
-  talos_secrets               = yamldecode(file(var.talos_secrets_file))
   external_dns_domain_filters = jsonencode(concat([var.dns_domain], var.external_dns_domains))
 }
 
@@ -12,16 +11,16 @@ provider "openstack" {
 
 provider "helm" {
   kubernetes {
-    host                   = local.kubernetes_endpoint
-    token                  = data.openstack_identity_auth_scope_v3.user.token_id
-    cluster_ca_certificate = base64decode(local.talos_secrets.certs.k8s.crt)
+    host     = local.kubernetes_endpoint
+    token    = data.openstack_identity_auth_scope_v3.user.token_id
+    insecure = true
   }
 }
 
 provider "kubernetes" {
-  host                   = local.kubernetes_endpoint
-  token                  = data.openstack_identity_auth_scope_v3.user.token_id
-  cluster_ca_certificate = base64decode(local.talos_secrets.certs.k8s.crt)
+  host     = local.kubernetes_endpoint
+  token    = data.openstack_identity_auth_scope_v3.user.token_id
+  insecure = true
 }
 
 data "openstack_identity_auth_scope_v3" "user" {
@@ -42,11 +41,11 @@ module "bws-base" {
   os_token                         = data.openstack_identity_auth_scope_v3.user.token_id
 
   kubernetes_version     = var.kubernetes_version
+  k0s_version            = var.k0s_version
   openstack_ccm_version  = var.openstack_ccm_version
   kube_api_external_ip   = var.kube_api_external_ip
   kube_api_external_port = var.kube_api_external_port
   keystone_auth_port     = var.keystone_auth_port
-  talos_secrets          = local.talos_secrets
 
   controlplane_count           = var.controlplane_count
   controlplane_volume_size     = var.controlplane_volume_size
@@ -58,17 +57,23 @@ module "bws-base" {
   worker_volume_type     = var.worker_volume_type
   worker_instance_flavor = var.worker_instance_flavor
 
+  bastion_volume_size     = var.bastion_volume_size
+  bastion_volume_type     = var.bastion_volume_type
+  bastion_instance_flavor = var.bastion_instance_flavor
+
   image_name = var.image_name
+
+  ssh_public_key = var.ssh_public_key
 
   pod_security_exemptions_namespaces = ["kube-prometheus-stack", "cinder-csi-plugin"]
 
-  k8s_distribution = "talos"
+  k8s_distribution = "k0s"
 }
 
 module "bws-bootstrap" {
   source = "git::https://github.com/valiton-k8s-blueprints/terraform.git//bws/bootstrap?ref=v1.1.0"
 
-  depends_on = [module.bws-base.cluster_health]
+  depends_on = [module.bws-base.cluster_health, module.bws-base]
 
   base_name   = var.base_name
   environment = var.environment
@@ -79,28 +84,15 @@ module "bws-bootstrap" {
 
   os_application_credential_id     = var.os_application_credential_id
   os_application_credential_secret = var.os_application_credential_secret
-  dynamic_worker_cloud_init        = module.bws-base.worker_machine_configuration
 
   destroy_timeout = 120
 
   metadata_annotations = {
-    openstack_ccm_version = var.openstack_ccm_version
-
-    openstack_auth_url            = var.os_auth_url
-    openstack_subnet_id           = module.bws-base.os_private_network_subnet_id
-    openstack_floating_network_id = module.bws-base.os_public_network_id
+    openstack_auth_url = var.os_auth_url
 
     dns_domain                           = var.dns_domain
-    cinder_csi_plugin_volume_type        = var.cinder_csi_plugin_volume_type
     external_dns_domain_filters          = local.external_dns_domain_filters
     external_dns_txt_owner_id            = var.base_name
     cert_manager_acme_registration_email = var.cert_manager_acme_registration_email
-
-    dynamic_worker_pool         = "${var.base_name}-pool1"
-    dynamic_worker_flavor_name  = var.worker_instance_flavor
-    dynamic_worker_image_name   = var.image_name
-    dynamic_worker_network_name = module.bws-base.os_private_network_name
-    dynamic_worker_disk_size    = var.worker_volume_size
-    dynamic_worker_subnet_name  = module.bws-base.os_private_network_subnet_name
   }
 }

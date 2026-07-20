@@ -1,6 +1,6 @@
 # Example configuration for BWS (Openstack)
 
-This is an example configuration to provision a Talos Linux cluster on BWS (Openstack).
+This is an example configuration to provision a kubeone cluster on BWS (Openstack).
 
 ## Quick start
 
@@ -23,7 +23,7 @@ This is an example configuration to provision a Talos Linux cluster on BWS (Open
    Leave "Floating IP Address" empty
 
    Button "OK"
-
+ 
 4. Create application credentials to authenticate to BWS.
 
    Go to https://dashboard.bws.burda.com/user/application-credentials
@@ -33,13 +33,24 @@ This is an example configuration to provision a Talos Linux cluster on BWS (Open
 
    Roles needed: "load-balancer_member", "member"
 
-5. Download the Talos Linux image and upload it to BWS. Name it 'Talos' (this is the default for this configuration).
-5. Get `talosctl` (see https://www.talos.dev/v1.10/introduction/quickstart/).
-6. Create your cluster secrets:
-    ```shell
-    talosctl gen secrets
-    ```
-7. Fork the argocd repo (https://github.com/valiton-k8s-blueprints/argocd).
+4. Get `kubeone` (see https://docs.kubermatic.com/kubeone/v1.13/getting-kubeone/).
+5. Create a CA, certifiactes and keys:
+   ```shell
+   cd ca
+   tofu init
+   tofu apply
+   ```
+6. Fork the argocd repo (https://github.com/valiton-k8s-blueprints/argocd). 
+7. Configure SSH: to setup the machines, we access them with ssh. This is done with a bastion host, but to spare 
+   another floating IP, we access the bastion host through a load balancer. This load balancer has a default timeout
+   of 50 seconds so the ssh connection will die if a command on the server takes longer. To prevent that, you can 
+   configure your ssh client to send keepalive messages every 30 seconds. Add the following to your `~/.ssh/config`:
+   
+   ```
+   Host *
+        ServerAliveInterval 30
+        ServerAliveCountMax 2
+   ```
 
 ### Private GitOps repositories
 
@@ -85,10 +96,11 @@ environment                          = "development"
 os_application_credential_id         = "<your application credential id>"
 os_application_credential_secret     = "<your application credential secret>"
 kube_api_external_ip                 = "<your floating ip>"
-dns_domain                           = "<your-project>.bws.burda.com"     # check https://dashboard.bws.burda.com/network/dns/zones
+dns_domain                           = "<your-project>.bws.burda.com"
 cert_manager_acme_registration_email = "<your email>"
 gitops_applications_repo_url         = "<your applications repo>"
 gitops_applications_repo_revision    = "<your repos branch>"
+ssh_public_key                       = "<your ssh public key>"
 ```
 
 
@@ -120,11 +132,8 @@ When all applications are synced and healthy, you can deploy your workloads or o
 A couple of hints for manual commands are ouput, e.g.:
 
 ```plain
-## get talosconfig
-tofu output -raw talosconfig > talosconfig
-
-## get kubeconfig (will be added to the default file in ~/.kube/config)
-talosctl --talosconfig ./talosconfig --nodes 10.x.x.x kubeconfig
+## get kubeconfig
+## kubeone creates a file <cluster-name>-kubeconfig
 
 echo "ArgoCD Username: admin"
 echo "ArgoCD Password: $(kubectl get secrets argocd-initial-admin-secret -n argocd --template="{{index .data.password | base64decode}}")"
@@ -189,9 +198,17 @@ NOTE: Any provisioned persistent volumes in Kubernetes will not be deleted. You 
 
 | Name | Description | Type | Default | Required |
 | ---- | ----------- | ---- | ------- | :------: |
+| <a name="input_availability_zone"></a> [availability\_zone](#input\_availability\_zone) | Name of the availability zone | `string` | `"az1"` | no |
 | <a name="input_base_name"></a> [base\_name](#input\_base\_name) | Name of your base infrastructure. Will be used to prfix the names of your resources. | `string` | `"my-project"` | no |
+| <a name="input_bastion_instance_flavor"></a> [bastion\_instance\_flavor](#input\_bastion\_instance\_flavor) | Instance flavor for the bastion node | `string` | `"BWS-T1-2-4"` | no |
+| <a name="input_bastion_volume_size"></a> [bastion\_volume\_size](#input\_bastion\_volume\_size) | Size in GB of the disk of bastion node | `number` | `10` | no |
+| <a name="input_bastion_volume_type"></a> [bastion\_volume\_type](#input\_bastion\_volume\_type) | BWS volume type for bastion node | `string` | `"ssd-3000-125"` | no |
+| <a name="input_ca_crt_file"></a> [ca\_crt\_file](#input\_ca\_crt\_file) | Filename of CA certificate for the cluster | `string` | `"ca/ca.crt"` | no |
+| <a name="input_ca_key_file"></a> [ca\_key\_file](#input\_ca\_key\_file) | Filename of CA key for the cluster | `string` | `"ca/ca.key"` | no |
 | <a name="input_cert_manager_acme_registration_email"></a> [cert\_manager\_acme\_registration\_email](#input\_cert\_manager\_acme\_registration\_email) | E-Mail address to register with let's encrypt | `string` | n/a | yes |
 | <a name="input_cinder_csi_plugin_volume_type"></a> [cinder\_csi\_plugin\_volume\_type](#input\_cinder\_csi\_plugin\_volume\_type) | Cinder csi plugin add-on configuration values | `string` | `"ssd-3000-125"` | no |
+| <a name="input_client_crt_file"></a> [client\_crt\_file](#input\_client\_crt\_file) | Filename of client certificate to use to connect to the cluster | `string` | `"ca/client.crt"` | no |
+| <a name="input_client_key_file"></a> [client\_key\_file](#input\_client\_key\_file) | Filename of client key to use to connect to the cluster | `string` | `"ca/client.key"` | no |
 | <a name="input_controlplane_count"></a> [controlplane\_count](#input\_controlplane\_count) | Number of controlplane nodes | `number` | `3` | no |
 | <a name="input_controlplane_instance_flavor"></a> [controlplane\_instance\_flavor](#input\_controlplane\_instance\_flavor) | Instance flavor for controlplane nodes | `string` | `"BWS-T1-2-8"` | no |
 | <a name="input_controlplane_volume_size"></a> [controlplane\_volume\_size](#input\_controlplane\_volume\_size) | Size in GB of the disk of controlplane nodes | `number` | `40` | no |
@@ -199,22 +216,24 @@ NOTE: Any provisioned persistent volumes in Kubernetes will not be deleted. You 
 | <a name="input_dns_domain"></a> [dns\_domain](#input\_dns\_domain) | Domain for external dns and gateway | `string` | n/a | yes |
 | <a name="input_environment"></a> [environment](#input\_environment) | Infrastructure environment name (e.g. development, staging, production). You can deploy different addons version to different environments. cert-manager will use let's encrypt staging for all environments but production | `string` | `"development"` | no |
 | <a name="input_external_dns_domains"></a> [external\_dns\_domains](#input\_external\_dns\_domains) | Additional domains for external dns | `list(string)` | `[]` | no |
-| <a name="input_gitops_applications_repo_path"></a> [gitops\_applications\_repo\_path](#input\_gitops\_applications\_repo\_path) | Path in Git repository for applications | `string` | `"bws-talos"` | no |
+| <a name="input_gitops_applications_repo_path"></a> [gitops\_applications\_repo\_path](#input\_gitops\_applications\_repo\_path) | Path in Git repository for applications | `string` | `"bws-kubeone"` | no |
 | <a name="input_gitops_applications_repo_revision"></a> [gitops\_applications\_repo\_revision](#input\_gitops\_applications\_repo\_revision) | Git repository revision/branch/ref for applications | `string` | n/a | yes |
 | <a name="input_gitops_applications_repo_url"></a> [gitops\_applications\_repo\_url](#input\_gitops\_applications\_repo\_url) | Url of Git repository for applications | `string` | n/a | yes |
-| <a name="input_image_name"></a> [image\_name](#input\_image\_name) | Name of the Talos image in your BWS project | `string` | `"Talos"` | no |
+| <a name="input_image_name"></a> [image\_name](#input\_image\_name) | Name of the image in your BWS project | `string` | `"Ubuntu 24.04"` | no |
 | <a name="input_keystone_auth_port"></a> [keystone\_auth\_port](#input\_keystone\_auth\_port) | Port of keystone auth | `number` | `30043` | no |
 | <a name="input_kube_api_external_ip"></a> [kube\_api\_external\_ip](#input\_kube\_api\_external\_ip) | External floating IP to expose Kubernetes API | `string` | n/a | yes |
 | <a name="input_kube_api_external_port"></a> [kube\_api\_external\_port](#input\_kube\_api\_external\_port) | Port to expose Kubernetes API | `number` | `6443` | no |
-| <a name="input_kubernetes_version"></a> [kubernetes\_version](#input\_kubernetes\_version) | Kubernetes version | `string` | `"v1.36.2"` | no |
-| <a name="input_openstack_ccm_version"></a> [openstack\_ccm\_version](#input\_openstack\_ccm\_version) | Openstack cloud controller mananger version | `string` | `"v1.36.0"` | no |
+| <a name="input_kubernetes_version"></a> [kubernetes\_version](#input\_kubernetes\_version) | Kubernetes version | `string` | `"v1.35.6"` | no |
+| <a name="input_max_dynamic_workers"></a> [max\_dynamic\_workers](#input\_max\_dynamic\_workers) | Maximum number of dynamic workers | `number` | `3` | no |
+| <a name="input_min_dynamic_workers"></a> [min\_dynamic\_workers](#input\_min\_dynamic\_workers) | Minimum number of dynamic workers | `number` | `1` | no |
 | <a name="input_os_application_credential_id"></a> [os\_application\_credential\_id](#input\_os\_application\_credential\_id) | Openstack application credentials ID | `string` | n/a | yes |
 | <a name="input_os_application_credential_secret"></a> [os\_application\_credential\_secret](#input\_os\_application\_credential\_secret) | Openstack application credentials secret | `string` | n/a | yes |
 | <a name="input_os_auth_url"></a> [os\_auth\_url](#input\_os\_auth\_url) | Openstack keystone url | `string` | `"https://dashboard.bws.burda.com:5000"` | no |
 | <a name="input_os_private_network_name"></a> [os\_private\_network\_name](#input\_os\_private\_network\_name) | Name of the private network | `string` | `"private-network"` | no |
 | <a name="input_os_public_network_name"></a> [os\_public\_network\_name](#input\_os\_public\_network\_name) | Name of the Openstack public network | `string` | `"Public1"` | no |
-| <a name="input_talos_secrets_file"></a> [talos\_secrets\_file](#input\_talos\_secrets\_file) | Name of the file that contains the Talos secrets generated with `talosctl gen secrets` | `string` | `"secrets.yaml"` | no |
-| <a name="input_worker_count"></a> [worker\_count](#input\_worker\_count) | Number of worker nodes | `number` | `2` | no |
+| <a name="input_os_region_name"></a> [os\_region\_name](#input\_os\_region\_name) | Openstack region name | `string` | `"DE-OFG"` | no |
+| <a name="input_ssh_public_key"></a> [ssh\_public\_key](#input\_ssh\_public\_key) | SSH public key | `string` | n/a | yes |
+| <a name="input_worker_count"></a> [worker\_count](#input\_worker\_count) | Number of worker nodes | `number` | `1` | no |
 | <a name="input_worker_instance_flavor"></a> [worker\_instance\_flavor](#input\_worker\_instance\_flavor) | Instance flavor for worker nodes | `string` | `"BWS-T1-2-8"` | no |
 | <a name="input_worker_volume_size"></a> [worker\_volume\_size](#input\_worker\_volume\_size) | Size in GB of the disk of worker nodes | `number` | `40` | no |
 | <a name="input_worker_volume_type"></a> [worker\_volume\_type](#input\_worker\_volume\_type) | BWS volume type for worker nodes | `string` | `"ssd-3000-125"` | no |
@@ -223,8 +242,5 @@ NOTE: Any provisioned persistent volumes in Kubernetes will not be deleted. You 
 
 | Name | Description |
 | ---- | ----------- |
-| <a name="output_controlplane_machine_configuration"></a> [controlplane\_machine\_configuration](#output\_controlplane\_machine\_configuration) | Machine Configuration for controlplane nodes |
-| <a name="output_talosconfig"></a> [talosconfig](#output\_talosconfig) | Talos client configuration |
-| <a name="output_worker_machine_configuration"></a> [worker\_machine\_configuration](#output\_worker\_machine\_configuration) | Machine Configuration for worker nodes |
 | <a name="output_x_download_kubeconfig"></a> [x\_download\_kubeconfig](#output\_x\_download\_kubeconfig) | Get kubeconfig of cluster |
 <!-- END_TF_DOCS -->
