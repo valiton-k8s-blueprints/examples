@@ -30,7 +30,7 @@ data "openstack_identity_auth_scope_v3" "user" {
 }
 
 module "bws-base" {
-  source = "git::https://github.com/valiton-k8s-blueprints/terraform.git//bws/base?ref=v1.1.1"
+  source = "git::https://github.com/valiton-k8s-blueprints/terraform.git//bws/base?ref=v1.1.2"
 
   base_name                        = var.base_name
   os_auth_url                      = var.os_auth_url
@@ -66,7 +66,7 @@ module "bws-base" {
 }
 
 module "bws-bootstrap" {
-  source = "git::https://github.com/valiton-k8s-blueprints/terraform.git//bws/bootstrap?ref=v1.1.1"
+  source = "git::https://github.com/valiton-k8s-blueprints/terraform.git//bws/bootstrap?ref=v1.1.2"
 
   depends_on = [module.bws-base.cluster_health]
 
